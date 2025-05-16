@@ -1,20 +1,34 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log/slog"
-	"os"
-	"strings"
+
+	"github.com/mustafmst/ftuck/internal/commands"
 )
 
 func main() {
-	var flag1 int
-	flag.IntVar(&flag1, "flag1", 0, "flag1 of command")
-	var user string
-	flag.StringVar(&user, "user", "guest", "user")
-	fmt.Print("Welcome to FTUCK. Let me TUCK Your files XD\n")
-	slog.Info("arguments before parsing", "args", strings.Join(os.Args[1:], " "), "flag1", flag1, "fla2", user)
-	flag.CommandLine.Parse(os.Args[2:])
-	slog.Info("parsed", "flag1", flag1, "flag2", user)
+	cmd := commands.NewCommandWithSubcommands(
+		"app",
+		"aplication root",
+		commands.NewCommandWithFunc(
+			"init", "Initialize FTUCK", func(ctx commands.CommandContext) error {
+				// get flag values
+				conf, err := ctx.GetString("conf")
+				if err != nil {
+					return err
+				}
+				user, err := ctx.GetString("user")
+				if err != nil {
+					return err
+				}
+				slog.Info("executing init subcommand", "conf", conf, "user", user)
+				return nil
+			},
+			commands.RegisterFlag("conf", "Config path", commands.StringArg, "c"),
+			commands.RegisterFlag("user", "User for the operation", commands.StringArg, "u"),
+		))
+	err := cmd.ExecuteAsRootCommand()
+	if err != nil {
+		slog.Error("root command execution error", "error", err)
+	}
 }
