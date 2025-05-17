@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path"
 
 	"github.com/mustafmst/ftuck/internal/cli"
 	"github.com/mustafmst/ftuck/internal/config"
@@ -68,13 +70,16 @@ func (as *addSyncCommand) exec(ctx cli.CommandContext) error {
 	if err != nil {
 		return err
 	}
+
+	syncFile := conf.Config.SyncFile
 	// return error if sync file not set
-	if conf.Config.SyncFile == "" {
-		return ErrNotInit
+	if syncFile == "" {
+		cwd, _ := os.Getwd()
+		syncFile = path.Join(cwd, filesync.SYNC_FILE_NAME)
 	}
 
 	// read sync definitions
-	d, err := filesync.ReadOrCreate(conf.Config.SyncFile)
+	d, err := filesync.ReadOrCreate(syncFile)
 	if err != nil {
 		return fmt.Errorf("%w : run init again", err)
 	}
@@ -90,7 +95,7 @@ func (as *addSyncCommand) exec(ctx cli.CommandContext) error {
 		Target: trg,
 	})
 
-	return s.WriteToFile(conf.Config.SyncFile)
+	return s.WriteToFile(syncFile)
 }
 
 func CreateAddSyncCommand(ctx context.Context) *cli.Command {
@@ -101,19 +106,19 @@ func CreateAddSyncCommand(ctx context.Context) *cli.Command {
 		cli.RegisterFlag(
 			TARGET_FLAG,
 			TARGET_DESC,
-			cli.StringArg,
+			cli.StringFlag,
 			SRC_TRG_DEFAULT_VALUE, "t",
 		),
 		cli.RegisterFlag(
 			SOURCE_FLAG,
 			SOURCE_DESC,
-			cli.StringArg,
+			cli.StringFlag,
 			SRC_TRG_DEFAULT_VALUE, "s",
 		),
 		cli.RegisterFlag(
 			CONF_FLAG,
 			CONF_DESC,
-			cli.StringArg,
+			cli.StringFlag,
 			CONF_DEFAULT,
 			"c",
 		),

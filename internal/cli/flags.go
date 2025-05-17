@@ -10,7 +10,7 @@ import (
 
 var (
 	ErrUnsupportedFlagType = errors.New("unsupported flag type")
-	ErrWrongArgType        = errors.New("wrong type of arg")
+	ErrWrongFlagType       = errors.New("wrong type of arg")
 	ErrFlagNotFound        = errors.New("flag not found")
 	ErrDefValueType        = errors.New("wrong data type for default value")
 )
@@ -18,9 +18,9 @@ var (
 type FlagType string
 
 var (
-	StringArg FlagType = "STRING"
-	IntArg    FlagType = "INT"
-	BoolArg   FlagType = "BOOL"
+	StringFlag FlagType = "STRING"
+	IntFlag    FlagType = "INT"
+	BoolFlag   FlagType = "BOOL"
 )
 
 type CommandContext interface {
@@ -34,7 +34,7 @@ type flagDefinition struct {
 	stringVal   string
 	intVal      int
 	boolVal     bool
-	argType     FlagType
+	flagType    FlagType
 	flags       []string
 	description string
 	defaultVal  any
@@ -60,18 +60,18 @@ func (a *flagDefinition) GetDescription() string {
 }
 
 func (a *flagDefinition) registerFlags() {
-	switch a.argType {
-	case StringArg:
+	switch a.flagType {
+	case StringFlag:
 		dv, _ := a.defaultVal.(string)
 		for _, argFlag := range a.flags {
 			flag.StringVar(&a.stringVal, argFlag, dv, a.description)
 		}
-	case IntArg:
+	case IntFlag:
 		dv, _ := a.defaultVal.(int)
 		for _, argFlag := range a.flags {
 			flag.IntVar(&a.intVal, argFlag, dv, a.description)
 		}
-	case BoolArg:
+	case BoolFlag:
 		dv, _ := a.defaultVal.(bool)
 		for _, argFlag := range a.flags {
 			flag.BoolVar(&a.boolVal, argFlag, dv, a.description)
@@ -81,8 +81,8 @@ func (a *flagDefinition) registerFlags() {
 
 type FlagDefinitionOpt func() (*flagDefinition, error)
 
-func RegisterFlag(name string, description string, argType FlagType, defaultValue any, replacementFlags ...string) FlagDefinitionOpt {
-	if !slices.Contains([]FlagType{StringArg, IntArg, BoolArg}, argType) {
+func RegisterFlag(name string, description string, flagType FlagType, defaultValue any, replacementFlags ...string) FlagDefinitionOpt {
+	if !slices.Contains([]FlagType{StringFlag, IntFlag, BoolFlag}, flagType) {
 		return func() (*flagDefinition, error) {
 			return nil, fmt.Errorf("(flag name: %s) %w", name, ErrUnsupportedFlagType)
 		}
@@ -90,18 +90,18 @@ func RegisterFlag(name string, description string, argType FlagType, defaultValu
 
 	var err error
 
-	switch argType {
-	case StringArg:
+	switch flagType {
+	case StringFlag:
 		_, ok := defaultValue.(string)
 		if !ok {
 			err = ErrDefValueType
 		}
-	case IntArg:
+	case IntFlag:
 		_, ok := defaultValue.(int)
 		if !ok {
 			err = ErrDefValueType
 		}
-	case BoolArg:
+	case BoolFlag:
 		_, ok := defaultValue.(bool)
 		if !ok {
 			err = ErrDefValueType
@@ -117,7 +117,7 @@ func RegisterFlag(name string, description string, argType FlagType, defaultValu
 	return func() (*flagDefinition, error) {
 		return &flagDefinition{
 			flags:       append([]string{name}, replacementFlags...),
-			argType:     argType,
+			flagType:    flagType,
 			description: description,
 			defaultVal:  defaultValue,
 		}, nil
@@ -137,8 +137,8 @@ func (c *CommandLineContext) GetBool(key string) (bool, error) {
 		return false, fmt.Errorf("(key: %s) %w", key, ErrFlagNotFound)
 	}
 
-	if fl.argType != BoolArg {
-		return false, fmt.Errorf("(key: %s) %w", key, ErrWrongArgType)
+	if fl.flagType != BoolFlag {
+		return false, fmt.Errorf("(key: %s) %w", key, ErrWrongFlagType)
 	}
 
 	return fl.boolVal, nil
@@ -152,8 +152,8 @@ func (c *CommandLineContext) GetInt(key string) (int, error) {
 		return -1, fmt.Errorf("(key: %s) %w", key, ErrFlagNotFound)
 	}
 
-	if fl.argType != IntArg {
-		return -1, fmt.Errorf("(key: %s) %w", key, ErrWrongArgType)
+	if fl.flagType != IntFlag {
+		return -1, fmt.Errorf("(key: %s) %w", key, ErrWrongFlagType)
 	}
 
 	return fl.intVal, nil
@@ -167,8 +167,8 @@ func (c *CommandLineContext) GetString(key string) (string, error) {
 		return "", fmt.Errorf("(key: %s) %w", key, ErrFlagNotFound)
 	}
 
-	if fl.argType != StringArg {
-		return "", fmt.Errorf("(key: %s) %w", key, ErrWrongArgType)
+	if fl.flagType != StringFlag {
+		return "", fmt.Errorf("(key: %s) %w", key, ErrWrongFlagType)
 	}
 
 	return fl.stringVal, nil
