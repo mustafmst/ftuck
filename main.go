@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/mustafmst/ftuck/internal/cli"
@@ -8,10 +9,12 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	cmd := cli.NewCommandWithSubcommands(
 		"app",
 		"aplication root",
-		commands.CreateInitCommand(),
+		commands.CreateInitCommand(ctx),
+		commands.CreateAddSyncCommand(ctx),
 	)
 	err := cmd.ExecuteAsRootCommand()
 	if err != nil {

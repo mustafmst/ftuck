@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -12,15 +13,26 @@ import (
 )
 
 // FLAGS
-const CONF_FLAG string = "conf"
+const (
+	CONF_FLAG string = "conf"
+	WD_FLAG   string = "workdir"
+)
 
 // DEFAULTS
-var CONF_DEFAULT string = path.Join(os.Getenv("HOME"), ".ftuck.yaml")
+var (
+	CONF_DEFAULT string = path.Join(os.Getenv("HOME"), ".ftuck.yaml")
+	WD_DEFAULt   string = "not provided"
+)
 
 // DESCRITIOPN
-var CONF_DESC string = "Specify configuration path (DEFAULT=" + CONF_DEFAULT + ")"
+var (
+	CONF_DESC string = "Specify configuration path. (DEFAULT=" + CONF_DEFAULT + ")"
+	WD_DESC   string = "Use different working directory than current."
+)
 
-type initCommand struct{}
+type initCommand struct {
+	ctx context.Context
+}
 
 func (i *initCommand) exec(ctx cli.CommandContext) error {
 	// get flag values
@@ -59,8 +71,10 @@ func (i *initCommand) exec(ctx cli.CommandContext) error {
 	return fmt.Errorf("no file syncfile (named=%s) found in current working directory (%s)", filesync.SYNC_FILE_NAME, cwd)
 }
 
-func CreateInitCommand() *cli.Command {
-	ic := &initCommand{}
+func CreateInitCommand(ctx context.Context) *cli.Command {
+	ic := &initCommand{
+		ctx: ctx,
+	}
 	return cli.NewCommandWithFunc(
 		"init", "Initialize FTUCK", ic.exec,
 		cli.RegisterFlag(CONF_FLAG, CONF_DESC, cli.StringArg, CONF_DEFAULT, "c"),
