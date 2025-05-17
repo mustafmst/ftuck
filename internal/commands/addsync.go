@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/mustafmst/ftuck/internal/cli"
 	"github.com/mustafmst/ftuck/internal/config"
@@ -25,7 +24,9 @@ const (
 )
 
 // DEFAULTS
-const SRC_TRG_DEFAULT_VALUE string = "path not given"
+const (
+	SRC_TRG_DEFAULT_VALUE string = "path not given"
+)
 
 // DESCRIPTIONS
 const (
@@ -73,9 +74,9 @@ func (as *addSyncCommand) exec(ctx cli.CommandContext) error {
 	}
 
 	// read sync definitions
-	d, err := os.ReadFile(conf.Config.SyncFile)
+	d, err := filesync.ReadOrCreate(conf.Config.SyncFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w : run init again", err)
 	}
 
 	s, err := filesync.ReadSchema(d)

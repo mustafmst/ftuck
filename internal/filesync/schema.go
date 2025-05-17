@@ -1,6 +1,8 @@
 package filesync
 
 import (
+	"bytes"
+	"io"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -29,6 +31,17 @@ func (s *Schema) WriteToFile(path string) error {
 
 func (s *Schema) Append(definition SyncDefinition) {
 	*s = append(*s, definition)
+}
+
+func ReadOrCreate(path string) ([]byte, error) {
+	buf := bytes.NewBuffer(nil)
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDONLY, 0644)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer f.Close()
+	io.Copy(buf, f)
+	return buf.Bytes(), nil
 }
 
 func ReadSchema(data []byte) (*Schema, error) {

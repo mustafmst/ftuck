@@ -78,5 +78,6 @@ func CreateInitCommand(ctx context.Context) *cli.Command {
 	return cli.NewCommandWithFunc(
 		"init", "Initialize FTUCK", ic.exec,
 		cli.RegisterFlag(CONF_FLAG, CONF_DESC, cli.StringArg, CONF_DEFAULT, "c"),
+		cli.RegisterFlag(WD_FLAG, WD_DESC, cli.StringArg, WD_DEFAULt, "wd"),
 	)
 }
