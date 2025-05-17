@@ -15,6 +15,6 @@ func main() {
 	)
 	err := cmd.ExecuteAsRootCommand()
 	if err != nil {
-		slog.Error("root command execution error", "error", err)
+		slog.Error("root command execution", "error", err)
 	}
 }

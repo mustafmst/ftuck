@@ -55,6 +55,9 @@ func (c *Command) GetDesc() string {
 
 // Prints help message to screen based on defined flags
 func (c *Command) Help() error {
+	// TODO: Look if there are any standards on how the help message sould be formated and implement that.
+	// Also maybe there could be injection of formatter so anyone can define its own.
+	// For now it is good as is.
 	fmt.Println(c.name)
 	fmt.Printf("---\n\t%s\n---\n\n", c.desc)
 	for _, cmd := range c.commands {
@@ -65,7 +68,7 @@ func (c *Command) Help() error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("\t\t-%s\t%s\n\t\t  %s\n\n", fl.GetName(), fl.GetDescription(), fl.GetShortList())
+		fmt.Printf("\t\t-%s\t%s\n\t\t shortcuts: %s\n\n", fl.GetName(), fl.GetDescription(), fl.GetShortList())
 	}
 	fmt.Println("\n---")
 
