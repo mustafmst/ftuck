@@ -52,7 +52,7 @@ func (i *initCommand) exec(ctx cli.CommandContext) error {
 	if err != nil {
 		return err
 	}
-	defer conf.Close()
+	defer conf.Save()
 
 	cwdfiles, err := os.ReadDir(cwd)
 	if err != nil {

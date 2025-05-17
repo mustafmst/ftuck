@@ -16,7 +16,7 @@ type ConfigFile struct {
 	Config Config
 }
 
-func (c *ConfigFile) Close() error {
+func (c *ConfigFile) Save() error {
 	d, err := yaml.Marshal(&c.Config)
 	if err != nil {
 		return err

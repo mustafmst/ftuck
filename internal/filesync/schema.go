@@ -33,6 +33,16 @@ func (s *Schema) Append(definition SyncDefinition) {
 	*s = append(*s, definition)
 }
 
+func (s *Schema) ForEach(f func(SyncDefinition) error) error {
+	for _, sd := range *s {
+		err := f(sd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func ReadOrCreate(path string) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDONLY, 0644)

@@ -15,6 +15,7 @@ func main() {
 		"aplication root",
 		commands.CreateInitCommand(ctx),
 		commands.CreateAddSyncCommand(ctx),
+		commands.CreateSyncAllCommand(ctx),
 	)
 	err := cmd.ExecuteAsRootCommand()
 	if err != nil {
