@@ -35,6 +35,10 @@ type initCommand struct {
 }
 
 func (i *initCommand) exec(ctx cli.CommandContext) error {
+	// TODO: Move logic to a seperate main config handler.
+	// Command definitions should only include getting proper
+	// data from command context and passing them to handler.
+
 	// get flag values
 	confPath, err := ctx.GetString(CONF_FLAG)
 	if err != nil {

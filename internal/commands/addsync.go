@@ -41,6 +41,9 @@ type addSyncCommand struct {
 }
 
 func (as *addSyncCommand) exec(ctx cli.CommandContext) error {
+	// TODO: Move logic to a seperate addsyncdef handler.
+	// Command definitions should only include getting proper
+	// data from command context and passing them to handler.
 	// get configuration path
 	confPath, err := ctx.GetString(CONF_FLAG)
 	if err != nil {

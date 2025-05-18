@@ -43,6 +43,9 @@ func (sa *syncAllCommand) exec(ctx cli.CommandContext) error {
 	}
 
 	return s.ForEach(func(sd filesync.SyncDefinition) error {
+		// TODO: Move logic to a seperate sync handler.
+		// Command definitions should only include getting proper
+		// data from command context and passing them to handler.
 		fi, err := os.Lstat(sd.Target)
 		if err != nil && !os.IsNotExist(err) {
 			slog.Error("syncing", "error", err, "target", sd.Target)
