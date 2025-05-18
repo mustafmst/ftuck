@@ -11,6 +11,10 @@ type Config struct {
 	SyncFile string `yaml:"syncfile"`
 }
 
+func (c *Config) GetSyncFilePath() string {
+	return c.SyncFile
+}
+
 type ConfigFile struct {
 	path   string
 	Config Config

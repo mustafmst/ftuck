@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"path"
 
 	"github.com/mustafmst/ftuck/internal/cli"
 	"github.com/mustafmst/ftuck/internal/config"
@@ -41,9 +39,6 @@ type addSyncCommand struct {
 }
 
 func (as *addSyncCommand) exec(ctx cli.CommandContext) error {
-	// TODO: Move logic to a seperate addsyncdef handler.
-	// Command definitions should only include getting proper
-	// data from command context and passing them to handler.
 	// get configuration path
 	confPath, err := ctx.GetString(CONF_FLAG)
 	if err != nil {
@@ -74,31 +69,7 @@ func (as *addSyncCommand) exec(ctx cli.CommandContext) error {
 		return err
 	}
 
-	syncFile := conf.Config.SyncFile
-	// return error if sync file not set
-	if syncFile == "" {
-		cwd, _ := os.Getwd()
-		syncFile = path.Join(cwd, filesync.SYNC_FILE_NAME)
-	}
-
-	// read sync definitions
-	d, err := filesync.ReadOrCreate(syncFile)
-	if err != nil {
-		return fmt.Errorf("%w : run init again", err)
-	}
-
-	s, err := filesync.ReadSchema(d)
-	if err != nil {
-		return err
-	}
-
-	// add new definition
-	s.Append(filesync.SyncDefinition{
-		Source: src,
-		Target: trg,
-	})
-
-	return s.WriteToFile(syncFile)
+	return filesync.MaybeCreateAndUpdateSyncFile(&conf.Config, src, trg)
 }
 
 func CreateAddSyncCommand(ctx context.Context) *cli.Command {

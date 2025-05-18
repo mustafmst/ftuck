@@ -2,14 +2,11 @@ package commands
 
 import (
 	"context"
-	"fmt"
-	"log/slog"
 	"os"
 	"path"
 
 	"github.com/mustafmst/ftuck/internal/cli"
 	"github.com/mustafmst/ftuck/internal/config"
-	"github.com/mustafmst/ftuck/internal/filesync"
 )
 
 // FLAGS
@@ -35,10 +32,6 @@ type initCommand struct {
 }
 
 func (i *initCommand) exec(ctx cli.CommandContext) error {
-	// TODO: Move logic to a seperate main config handler.
-	// Command definitions should only include getting proper
-	// data from command context and passing them to handler.
-
 	// get flag values
 	confPath, err := ctx.GetString(CONF_FLAG)
 	if err != nil {
@@ -50,29 +43,17 @@ func (i *initCommand) exec(ctx cli.CommandContext) error {
 		return err
 	}
 
-	slog.Info("initialing FTUCK", "config path", confPath, "working dir", cwd)
-
 	conf, err := config.OpenConfigFile(confPath)
 	if err != nil {
 		return err
 	}
-	defer conf.Save()
 
 	cwdfiles, err := os.ReadDir(cwd)
 	if err != nil {
 		return err
 	}
 
-	for _, de := range cwdfiles {
-		if de.IsDir() {
-			continue
-		}
-		if de.Name() == filesync.SYNC_FILE_NAME {
-			conf.Config.SyncFile = path.Join(cwd, de.Name())
-			return nil
-		}
-	}
-	return fmt.Errorf("no file syncfile (named=%s) found in current working directory (%s)", filesync.SYNC_FILE_NAME, cwd)
+	return config.MaybeUpdateAndSaveConfig(conf, cwdfiles, cwd)
 }
 
 func CreateInitCommand(ctx context.Context) *cli.Command {
