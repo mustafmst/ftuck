@@ -1,46 +1,18 @@
-package filesync
+package commands
 
 import (
 	"fmt"
 	"log/slog"
 	"os"
-	"path"
+
+	"github.com/mustafmst/ftuck/internal/filesync"
 )
 
-type syncFileGetter interface {
-	GetSyncFilePath() string
-}
-
-func MaybeCreateAndUpdateSyncFile(conf syncFileGetter, src string, trg string) error {
-	syncFile := conf.GetSyncFilePath()
-	// return error if sync file not set
-	if syncFile == "" {
-		cwd, _ := os.Getwd()
-		syncFile = path.Join(cwd, SYNC_FILE_NAME)
-	}
-
-	// read sync definitions
-	d, err := ReadOrCreate(syncFile)
-	if err != nil {
-		return fmt.Errorf("%w : run init again", err)
-	}
-
-	s, err := ReadSchema(d)
-	if err != nil {
-		return err
-	}
-
-	// add new definition
-	s.Append(SyncDefinition{
-		Source: src,
-		Target: trg,
-	})
-
-	return s.WriteToFile(syncFile)
-}
-
-func (s *Schema) SyncAllEntries() error {
-	return s.ForEach(func(sd SyncDefinition) error {
+func SyncAllEntries(s *filesync.Schema) error {
+	return s.ForEach(func(sd filesync.SyncDefinition) error {
+		// TODO: Move logic to a seperate sync handler.
+		// Command definitions should only include getting proper
+		// data from command context and passing them to handler.
 		fi, err := os.Lstat(sd.Target)
 		if err != nil && !os.IsNotExist(err) {
 			slog.Error("syncing", "error", err, "target", sd.Target)
