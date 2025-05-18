@@ -12,4 +12,6 @@ clean:
 install-user:
 	@echo "USER WIDE INSTALL TO ~/.local/bin"
 	@mkdir -p ~/.local/bin
-	@cp -r ./dist/ftuck ~/.local/bin/
+	@cp -r ./dist/ftuck ~/.local/bin/ 
+	@echo "command: ftuck"
+	@echo "To enable usage make sure that ~/.local/bin is in Your PATH"
