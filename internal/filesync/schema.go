@@ -9,8 +9,8 @@ import (
 )
 
 type SyncDefinition struct {
-	Source string `yaml:"source"`
-	Target string `yaml:"target"`
+	Source      string `yaml:"src"`
+	Destination string `yaml:"dest"`
 }
 
 type Schema []SyncDefinition

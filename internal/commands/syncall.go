@@ -39,7 +39,7 @@ func (sa *syncAllCommand) exec(ctx cli.CommandContext) error {
 	if err != nil {
 		return err
 	}
-	return s.SyncAllEntries()
+	return s.SyncAllEntries(&conf.Config)
 }
 
 func CreateSyncAllCommand(ctx context.Context) *cli.Command {

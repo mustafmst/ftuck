@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 type syncFileGetter interface {
@@ -32,46 +33,50 @@ func MaybeCreateAndUpdateSyncFile(conf syncFileGetter, src string, trg string) e
 
 	// add new definition
 	s.Append(SyncDefinition{
-		Source: src,
-		Target: trg,
+		Source:      src,
+		Destination: trg,
 	})
 
 	return s.WriteToFile(syncFile)
 }
 
-func (s *Schema) SyncAllEntries() error {
+func (s *Schema) SyncAllEntries(conf syncFileGetter) error {
 	return s.ForEach(func(sd SyncDefinition) error {
-		fi, err := os.Lstat(sd.Target)
+		source := sd.Source
+		if !filepath.IsAbs(source) {
+			source = filepath.Join(conf.GetSyncFilePath(), source)
+		}
+		fi, err := os.Lstat(sd.Destination)
 		if err != nil && !os.IsNotExist(err) {
-			slog.Error("syncing", "error", err, "target", sd.Target)
+			slog.Error("syncing", "error", err, "target", sd.Destination)
 			return err
 		}
 		// Creating link if it does not exist
 		if err != nil && os.IsNotExist(err) {
-			slog.Info("creating link", "source", sd.Source, "target", sd.Target)
-			os.Symlink(sd.Source, sd.Target)
+			slog.Info("creating link", "source", source, "target", sd.Destination)
+			os.Symlink(source, sd.Destination)
 			return nil
 		}
 		// ommiting if file exists
 		if fi.Mode()&os.ModeSymlink == 1 {
-			err := fmt.Errorf("(path = %s) file exists", sd.Target)
+			err := fmt.Errorf("(path = %s) file exists", sd.Destination)
 			slog.Error("target file already exists and is not a Symlink", "error", err)
 			return nil
 		}
-		existingSource, err := os.Readlink(sd.Target)
+		existingSource, err := os.Readlink(sd.Destination)
 		if err != nil {
 			slog.Error("reading link", "error", err)
 			return err
 		}
 
 		// updating if source is different
-		if existingSource != sd.Source {
-			slog.Error("link different", "source", sd.Source, "link", existingSource)
-			err := os.Remove(sd.Target)
+		if existingSource != source {
+			slog.Error("link different", "source", source, "link", existingSource)
+			err := os.Remove(sd.Destination)
 			if err != nil {
 				return err
 			}
-			err = os.Symlink(sd.Source, sd.Target)
+			err = os.Symlink(source, sd.Destination)
 			if err != nil {
 				return err
 			}
@@ -79,7 +84,7 @@ func (s *Schema) SyncAllEntries() error {
 		}
 
 		// nothing to be done here
-		slog.Info("nothing to do", "target", sd.Target)
+		slog.Info("nothing to do", "target", sd.Destination)
 		return nil
 	})
 }
