@@ -47,15 +47,16 @@ func (c *confMock) GetSyncFilePath() string {
 func TestSchema_SyncAllEntries(t *testing.T) {
 	// os.CreateTemp(dir string, pattern string)
 	tmpDir := os.TempDir()
-	srcPath := path.Join(tmpDir, "test_sync_all", "src")
-	destPath := path.Join(tmpDir, "test_sync_all", "dest")
+	const testDir = "test_sync_all"
+	srcPath := path.Join(tmpDir, testDir, "src")
+	destPath := path.Join(tmpDir, testDir, "dest")
 
 	// Create src and dest dirs for test
 	_ = os.MkdirAll(srcPath, 0x666)
 	_ = os.MkdirAll(destPath, 0x666)
 
-	srvF1Name := path.Join(srcPath, "file1")
-	srcF1, _ := os.Create(srvF1Name)
+	srcF1Name := path.Join(srcPath, "file1")
+	srcF1, _ := os.Create(srcF1Name)
 	defer srcF1.Close()
 
 	// Create all files needed for tests
@@ -75,7 +76,7 @@ func TestSchema_SyncAllEntries(t *testing.T) {
 		checkFunc func() error
 	}{
 		{
-			name: "non abs source is changet to abs",
+			name: "non abs source is changed to abs",
 			data: &Schema{
 				{
 					Source:      "file1",
@@ -94,16 +95,40 @@ func TestSchema_SyncAllEntries(t *testing.T) {
 				}
 				if resolvedLink, err := filepath.EvalSymlinks(f.Name()); err != nil {
 					return err
-				} else if resolvedLink != srvF1Name {
+				} else if resolvedLink != srcF1Name {
 					return fmt.Errorf("link points to wrong file (link:%s, target:%s)", f.Name(), resolvedLink)
 				}
 
 				return nil
 			},
 		},
-		// {
-		// 	name: "",
-		// },
+		{
+			name: "abs path is not changed",
+			data: &Schema{
+				{
+					Source:      srcF1Name,
+					Destination: path.Join(destPath, "dFile1abs"),
+				},
+			},
+			conf:    &confMock{""},
+			wantErr: false,
+			checkFunc: func() error {
+				f, err := os.Lstat(path.Join(destPath, "dFile1abs"))
+				if err != nil {
+					return err
+				}
+				if f.Mode()&os.ModeSymlink == 1 {
+					return fmt.Errorf("File exist but is not a symlink (name: %s)", f.Name())
+				}
+				if resolvedLink, err := filepath.EvalSymlinks(f.Name()); err != nil {
+					return err
+				} else if resolvedLink != srcF1Name {
+					return fmt.Errorf("link points to wrong file (link:%s, target:%s)", f.Name(), resolvedLink)
+				}
+
+				return nil
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

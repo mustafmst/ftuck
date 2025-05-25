@@ -15,3 +15,7 @@ install-user:
 	@cp -r ./dist/ftuck ~/.local/bin/ 
 	@echo "command: ftuck"
 	@echo "To enable usage make sure that ~/.local/bin is in Your PATH"
+
+.PHONY: test
+test:
+	go test ./...
