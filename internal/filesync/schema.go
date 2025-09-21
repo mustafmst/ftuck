@@ -3,6 +3,7 @@ package filesync
 import (
 	"bytes"
 	"io"
+	"log/slog"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -16,16 +17,21 @@ type SyncDefinition struct {
 type Schema []SyncDefinition
 
 func (s *Schema) WriteToFile(path string) error {
+	slog.Debug("writing sync schema to file", "path", path, "entries", len(*s))
+	
 	d, err := yaml.Marshal(s)
 	if err != nil {
+		slog.Error("failed to marshal sync schema", "path", path, "error", err)
 		return err
 	}
 
 	err = os.WriteFile(path, d, 0644)
 	if err != nil {
+		slog.Error("failed to write sync file", "path", path, "error", err)
 		return err
 	}
 
+	slog.Debug("sync schema written successfully", "path", path)
 	return nil
 }
 
