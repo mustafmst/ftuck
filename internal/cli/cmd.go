@@ -96,7 +96,8 @@ func (c *Command) Execute(args ...string) error {
 	commandName := args[0]
 	cmd, ok := c.commands[commandName]
 	if !ok {
-		return fmt.Errorf("%s: %w", commandName, c.Help())
+		c.Help()
+		return fmt.Errorf("%s: %w", commandName, ErrCmdNotFound)
 	}
 
 	// if subcommand found execute it
@@ -106,6 +107,10 @@ func (c *Command) Execute(args ...string) error {
 // This just starts command resolution from the beginning of arguments
 func (c *Command) ExecuteAsRootCommand() error {
 	if len(os.Args) < 2 {
+		return c.Help()
+	}
+	// Check if help is requested at root level
+	if checkHelp(os.Args[1:]...) {
 		return c.Help()
 	}
 	return c.Execute(os.Args[1:]...)
