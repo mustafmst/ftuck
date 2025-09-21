@@ -9,9 +9,11 @@ import (
 )
 
 func main() {
-	// Initialize structured logging
-	logConfig := logging.DefaultConfig()
+	// Initialize structured logging with environment configuration
+	logConfig := logging.ConfigFromEnv()
 	logger := logging.InitLogger(logConfig)
+	
+	logger.Debug("starting ftuck application", "log_level", logConfig.Level, "log_format", logConfig.Format)
 	
 	ctx := context.Background()
 	cmd := cli.NewCommandWithSubcommands(

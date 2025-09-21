@@ -18,9 +18,13 @@ func MaybeCreateAndUpdateSyncFile(conf syncFileGetter, src string, trg string) e
 	if syncFile == "" {
 		cwd, _ := os.Getwd()
 		syncFile = path.Join(cwd, SYNC_FILE_NAME)
+		slog.Debug("sync file not configured, using default", "sync_file", syncFile)
+	} else {
+		slog.Debug("using configured sync file", "sync_file", syncFile)
 	}
 
 	// read sync definitions
+	slog.Debug("reading sync file", "path", syncFile)
 	d, err := ReadOrCreate(syncFile)
 	if err != nil {
 		return fmt.Errorf("%w : run init again", err)
@@ -32,6 +36,7 @@ func MaybeCreateAndUpdateSyncFile(conf syncFileGetter, src string, trg string) e
 	}
 
 	// add new definition
+	slog.Info("adding sync definition", "source", src, "destination", trg)
 	s.Append(SyncDefinition{
 		Source:      src,
 		Destination: trg,

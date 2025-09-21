@@ -3,6 +3,7 @@ package logging
 import (
 	"log/slog"
 	"os"
+	"strings"
 )
 
 // LogLevel represents the different log levels available
@@ -27,6 +28,37 @@ func DefaultConfig() *Config {
 		Level:  LevelInfo,
 		Format: "text",
 	}
+}
+
+// ConfigFromEnv creates logging configuration from environment variables
+func ConfigFromEnv() *Config {
+	config := DefaultConfig()
+	
+	// Check FTUCK_LOG_LEVEL environment variable
+	if levelStr := os.Getenv("FTUCK_LOG_LEVEL"); levelStr != "" {
+		switch strings.ToLower(levelStr) {
+		case "debug":
+			config.Level = LevelDebug
+		case "info":
+			config.Level = LevelInfo
+		case "warn", "warning":
+			config.Level = LevelWarn
+		case "error":
+			config.Level = LevelError
+		}
+	}
+	
+	// Check FTUCK_LOG_FORMAT environment variable
+	if formatStr := os.Getenv("FTUCK_LOG_FORMAT"); formatStr != "" {
+		switch strings.ToLower(formatStr) {
+		case "json":
+			config.Format = "json"
+		case "text":
+			config.Format = "text"
+		}
+	}
+	
+	return config
 }
 
 // InitLogger initializes and configures the structured logger
